@@ -13,7 +13,7 @@ export async function main(options: Options = {}) {
 
   cli
     .command('[...files]', 'Bundle files', {
-      ignoreOptionDefaultValue: true,
+      ignoreOptionDefaultValue: true, // 什么意思
     })
     .option('--entry.* <file>', 'Use a key-value pair as entry files')
     .option('-d, --out-dir <dir>', 'Output directory', { default: 'dist' })
@@ -101,7 +101,7 @@ export async function main(options: Options = {}) {
     )
     .option('--cjsInterop', 'Enable cjs interop')
     .action(async (files: string[], flags) => {
-      const { build } = await import('.')
+      const { build } = await import('.') // 构建函数
       Object.assign(options, {
         ...flags,
       })

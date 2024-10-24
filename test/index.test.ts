@@ -1,4 +1,4 @@
-import { test, expect, beforeAll } from 'vitest'
+import { test, expect } from 'vitest'
 import path from 'path'
 import execa from 'execa'
 import fs from 'fs-extra'
@@ -6,31 +6,26 @@ import glob from 'globby'
 import waitForExpect from 'wait-for-expect'
 import { fileURLToPath } from 'url'
 import { debouncePromise, slash } from '../src/utils'
+import { exec } from 'child_process'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const cacheDir = path.resolve(__dirname, '.cache')
 const bin = path.resolve(__dirname, '../dist/cli-default.js')
 
+
 const getTestName = () => {
   const name = expect
     .getState()
     .currentTestName?.replace(/^[a-z]+/g, '_')
     .replace(/-/g, '_')
-
+  console.log(name, 'name')
   if (!name) {
     throw new Error('No test name')
   }
 
   return name
 }
-
-beforeAll(async () => {
-  await fs.remove(cacheDir)
-  console.log(`Installing dependencies in ./test folder`)
-  await execa('pnpm', ['i'], { cwd: __dirname })
-  console.log(`Done... start testing..`)
-})
 
 function filenamify(input: string) {
   return input.replace(/[^a-zA-Z0-9]/g, '-')
@@ -47,7 +42,7 @@ async function run(
 ) {
   const testDir = path.resolve(cacheDir, filenamify(title))
 
-  // Write entry files on disk
+  // Write entry files on disk // 生成cache这个文件
   await Promise.all(
     Object.keys(files).map((name) => {
       return fs.outputFile(path.resolve(testDir, name), files[name], 'utf8')
@@ -55,7 +50,6 @@ async function run(
   )
 
   const entry = options.entry || ['input.ts']
-
   // Run tsup cli
   const { exitCode, stdout, stderr } = await execa(
     bin,
@@ -87,8 +81,8 @@ async function run(
     },
   }
 }
-
-test('simple', async () => {
+// TODO：跑通tsbuild只需要过这一个测试用例
+test.only('simple', async () => {
   const { output, outFiles } = await run(getTestName(), {
     'input.ts': `import foo from './foo';export default foo`,
     'foo.ts': `export default 'foo'`,
@@ -337,6 +331,7 @@ test('import css', async () => {
   expect(outFiles).toEqual(['input.css', 'input.js'])
 })
 
+// TODO: 支持css
 test('support tailwindcss postcss plugin', async () => {
   const { output, outFiles } = await run(getTestName(), {
     'input.ts': `

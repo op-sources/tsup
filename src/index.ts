@@ -76,15 +76,15 @@ const normalizeOptions = async (
     ...optionsFromConfigFile,
     ...optionsOverride,
   }
-
+  // 参数归一化
   const options: Partial<NormalizedOptions> = {
     outDir: 'dist',
     ..._options,
     format:
       typeof _options.format === 'string'
         ? [_options.format as Format]
-        : _options.format || ['cjs'],
-    dts:
+        : _options.format || ['cjs'], // 最终格式是个string[]
+    dts: // 支持三种类型：dts?: boolean | string | DtsConfig
       typeof _options.dts === 'boolean'
         ? _options.dts
           ? {}
@@ -180,16 +180,19 @@ export async function build(_options: Options) {
   const config =
     _options.config === false
       ? {}
-      : await loadTsupConfig(
+      : await loadTsupConfig( // tsup.config.ts文件
           process.cwd(),
           _options.config === true ? undefined : _options.config
         )
+  
 
+  // 参数归一化
   const configData =
     typeof config.data === 'function'
       ? await config.data(_options)
       : config.data
 
+  // 此处为啥用promise.all
   await Promise.all(
     [...(Array.isArray(configData) ? configData : [configData])].map(
       async (item) => {
@@ -327,6 +330,7 @@ export async function build(_options: Options) {
                       logger,
                     }),
                   ])
+                  // TODO: 核心函数
                   await runEsbuild(options, {
                     pluginContainer,
                     format,

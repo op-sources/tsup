@@ -159,7 +159,8 @@ export async function runEsbuild(
       : options.footer
 
   try {
-    result = await esbuild({
+    // TODO：入口
+    const op = {
       entryPoints: options.entry,
       format:
         (format === 'cjs' && splitting) || options.treeshake ? 'esm' : format,
@@ -241,7 +242,9 @@ export async function runEsbuild(
       keepNames: options.keepNames,
       pure: typeof options.pure === 'string' ? [options.pure] : options.pure,
       metafile: true,
-    })
+    }
+    console.log(op, '========================================================')
+    result = await esbuild(op)
   } catch (error) {
     logger.error(format, 'Build failed')
     throw error
